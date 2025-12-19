@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "Vogelschutz",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::25832" } },
+"features": [
+
+]
+}

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <!-- set the charset -->
@@ -7,21 +8,10 @@
  <!-- set make the map responsive -->
  <meta http-equiv="X-UA-Compatible" content="IE=edge">
  <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+ 
  <meta name="mobile-web-app-capable" content="yes">
  <meta name="apple-mobile-web-app-capable" content="yes">
-  <!-- set the title shown in the browser tab -->
- <title>Vogelschutzgebiete Baden-Württemberg</title>
  
- <!-- leaflet  -->
- <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
- 
-  <!-- Geodaten leaflet  -->
- <!-- <script src="Gruenflaechen.js"></script>
- <script src="Grundflaeche.js"></script> -->
- 
- 
-  <!-- Links to the leaflet CSS and JS -->
  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
    crossorigin=""/>
@@ -29,7 +19,15 @@
    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
    crossorigin=""></script>
    
-   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.css">
+<script src="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.js"></script>
+ 
+
+
+  <!-- set the title shown in the browser tab -->
+ <title>Vogelschutzgebiete Baden-Württemberg</title>
+ 
+    
   <!-- styles for elements html and body: fullscreen  -->
  <style>
   html, body {
@@ -39,14 +37,6 @@
 	 margin: 0;
   }
   
- .source-box {
-    background: #ffffff;         /* komplett weiß */
-    padding: 6px 10px;
-    border-radius: 4px;
-    border: 1px solid #999999;  /* grauer Rahmen */
-    font-size: 12px;
-    box-shadow: 0 0 6px rgba(0,0,0,0.3);
-}
   
   #overlay-text {
       position: absolute;
@@ -60,8 +50,10 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 	
- </style>	
+ </style>
+ 
 </head>
+
 <body>
  <!-- set the div element containing the map -->
  <div id="overlay-text"> <h2> Vogelschutzgebiete Baden-Württemberg</h2> </div>
@@ -70,12 +62,9 @@
  
  <script>
  
- var Legende = L.control({position: 'bottomright'});
- 
  
   // Create Leaflet map
-  var mymap = L.map('mapid').setView([51.5, 11.5], 6);
-  
+   
   var mymap = L.map('mapid').setView([48.5784, 9.0562], 8.5);
  
   // Add basemaps
@@ -85,16 +74,64 @@
   }).addTo(mymap);
   
   // basemap 2:
-  var satellit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-});
+  var Satellit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+  });
 
+// Basemaps
  var basemaps = {
  "Open Street Map DE": osm_basemap,
- "Satellit": satellit};
+ "Satellit": Satellit
+ };
+ 
+ // Vogelschutz-Layer per fetch laden
+fetch("Vogelschutz.geojson")
+  .then(response => response.json())
+  .then(data => {
+    var vogelschutzLayer = L.geoJSON(data, {
+      style: {
+        color: "red",
+        weight: 2,
+        fillOpacity: 0
+      }
+    }).addTo(mymap);
+ 
+ // Overlay
+var vogelschutzLayer = L.geoJSON(Vogelschutz, {
+  style: {
+    color: "red",
+    weight: 2,
+    fillOpacity: 0
+  }
+}).addTo(mymap);
 
-var legend = L.control.layers(basemaps, overlays, {collapsed: false, position:"topright"}).addTo(Karte);
-var scale = L.control.scale({maxWidth: 150, metric: true, imperial: false}).addTo(Karte);
+ // Layer control
+var overlays = {
+  "Vogelschutz": vogelschutzLayer
+};
+
+L.control.layers(basemaps, overlays, {
+  collapsed: false
+}).addTo(mymap);
+})
+  .catch(error => console.error("Fehler beim Laden der GeoJSON:", error));
+
+
+
+// Scale
+var scale = L.control.scale({maxWidth: 150, metric: true, imperial: true}).addTo(mymap);
+
+var options = {
+ position: 'bottomleft',
+  lengthUnit: {
+  factor: 1000,   
+  display: "m",
+  decimal:0,
+  label: "Distance"
+  }
+ };
+
+var ruler = L.control.ruler(options).addTo(mymap);
 
  </script>
  
