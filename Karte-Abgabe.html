@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.css">
 <script src="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.js"></script>
  
-
+ <script src="Vogelschutz.js"></script>
 
   <!-- set the title shown in the browser tab -->
  <title>Vogelschutzgebiete Baden-Württemberg</title>
@@ -84,18 +84,6 @@
  "Satellit": Satellit
  };
  
- // Vogelschutz-Layer per fetch laden
-fetch("Vogelschutz.geojson")
-  .then(response => response.json())
-  .then(data => {
-    var vogelschutzLayer = L.geoJSON(data, {
-      style: {
-        color: "red",
-        weight: 2,
-        fillOpacity: 0
-      }
-    }).addTo(mymap);
- 
  // Overlay
 var vogelschutzLayer = L.geoJSON(Vogelschutz, {
   style: {
@@ -113,9 +101,6 @@ var overlays = {
 L.control.layers(basemaps, overlays, {
   collapsed: false
 }).addTo(mymap);
-})
-  .catch(error => console.error("Fehler beim Laden der GeoJSON:", error));
-
 
 
 // Scale
