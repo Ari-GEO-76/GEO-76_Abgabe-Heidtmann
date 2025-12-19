@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<!-- set the charset -->
+ <!-- set the charset -->
  <meta charset="utf-8">
  <!-- set make the map responsive -->
  <meta http-equiv="X-UA-Compatible" content="IE=edge">
  <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
  <meta name="mobile-web-app-capable" content="yes">
  <meta name="apple-mobile-web-app-capable" content="yes">
-  <!-- set the title shown in the browser tab -->
+ <!-- set the title shown in the browser tab -->
  <title>Vogelschutzgebiete Baden-Württemberg</title>
-  <!-- Links to the leaflet CSS and JS -->
- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-   crossorigin=""/>
- <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-   crossorigin=""></script>
-  <!-- styles for elements html and body: fullscreen  -->
+ 
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/geotiff@0.4.1/dist/geotiff.browserify.min.js"></script>
+
+<script src="https://unpkg.com/plotty@0.2.0/src/plotty.js"></script>
+
+<script src="leaflet-geotiff.js"></script>
+<script src="leaflet-geotiff-plotty.js"></script>
+ 
+ <!-- Links to the Leaflet-Ruler Plugin -->
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.css" />  
+ <script src="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.js"></script>
+ <!-- External data  --> 
+ <script src="windkraft.js"></script>
+ <!-- styles for elements html and body: fullscreen  -->
  <style>
   html, body {
  	 width: 100%;
@@ -26,35 +35,147 @@
 	 padding: 0;
 	 margin: 0;
   }
+  .source-box {
+    background: #ffffff;         /* komplett weiß */
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #999999;  /* grauer Rahmen */
+    font-size: 12px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.3);
+}
+
  </style>	
 </head>
 <body>
  <!-- set the div element containing the map -->
  <div id="mapid" style="width: 100%; height: 100%; padding: 0; margin: 0;"></div>
- 
- 
+
+
  <script>
- 
-  // Create Leaflet map
-  var mymap = L.map('mapid').setView([51.5, 11.5], 6);
- 
+
+var Legende = L.control({position: 'bottomright'});
+
+
+
+ var mymap = L.map('mapid').setView([48.5784, 9.0562], 8.5);
+
   // Add basemaps
-  // basemap 1:
+  // basemap 1: OpenStreetMap DE
   var osm_basemap = L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
 	  attribution: '<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(mymap);
+
+
+
+var Windspeed = L.leafletGeotiff('Baden100_align_meanspeed.tif', {
+    renderer: L.LeafletGeotiff.plotty({
+        displayMin: 2.1,      
+        displayMax: 8.3,     
+        colorScale: 'magma',
+        clampLow: false,
+        clampHigh: true,    
+    }),
   
-  // basemap 2:
-  var otm_basemap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-  attribution: '<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+  
+    attribution: '<b>Karte:</b> <a href="https://udo.lubw.baden-wuerttemberg.de/projekte/navigatorurl/show?globalId=energie_windatlas.energie%3A%24SYSTEM%7BUDO_GEODOWNLOAD_URL%7Denergie%2FWindatlasBW.html">Windatlas BW - Resampled</a>. Daten: LUBW'
+});
+
+ // basemap 3: ESRI Satellitenbild
+  var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
   });
- 
-  // basemap 3:
-  var osmint_basemap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(mymap);
+
+
+
+
+
+  // Basemap dictonary
+  var basemaps = {
+   "Open Street Map DE": osm_basemap,
+   "Mean Windspeed 100m": Windspeed,
+   "ESRI Satellitenbild": Esri_WorldImagery
+  };
+  
+Legende.onAdd = function (mymap) {
+    var div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML =
+        '<img src="Legende.png" alt="legend" style="width:300px;height:162px">';
+    return div;
+};
+// Event-Listener für Layer-Wechsel
+mymap.on('baselayerchange', function(e) {
+    if (e.name === 'Mean Windspeed 100m') {
+        Legende.addTo(mymap);
+    } else {
+        mymap.removeControl(Legende);
+    }
+});
+
+   var windradIcon = L.icon({
+    iconUrl: 'windmill.png',
+
+    iconSize:     [40, 40], // size of the icon
+    iconAnchor:   [15, 25], // point of the icon which will correspond to marker's location
+    popupAnchor:  [6, -35] // point from which the popup should open relative to the iconAnchor
+});
+   
+  // Add popup function
+  function popUpFunction(feature, layer) {
+   var popupContent =  
+   "<br><b>Standort: </b>"+feature.properties.STANDORTGE+
+   "<br><b>Hersteller: </b>"+feature.properties.HERSTELLER+
+   "<br><b>Status: </b>"+ feature.properties.STATUS+
+   "<br><b>Generatorleistung in MW: </b>"+ feature.properties.GENERATORL;
+   layer.bindPopup(popupContent);
+  }
+  
+   var Windkraft = L.geoJSON(windkraft, {
+   onEachFeature: popUpFunction,
+   pointToLayer: function (feature, latlng) {
+   return L.marker(latlng,{icon: windradIcon});
+  }}).addTo(mymap);
+  
+  // Overlay dictonary
+  var overlays = {
+   "Windkraftanlagen": Windkraft
+  };
+
+  // Layer control
+  var legend = L.control.layers(basemaps,overlays,{collapsed: false}).addTo(mymap);
+  
+
+
+legend.addTo(mymap);
+  
+  
+  // Scale
+  var scale = L.control.scale({maxWidth: 150, metric: true, imperial: true}).addTo(mymap);
+  
+  // Leaflet-Ruler measure tool
+  var options = {
+   position: 'bottomleft',
+   lengthUnit: {
+    factor: 1000,    //  from km to nm
+    display: "m",
+    decimal:0,
+	label: "Distance"
+   }
+  };
+  var ruler = L.control.ruler(options).addTo(mymap);
+
+var sourceControl = L.control({position: 'bottomright'});
+
+sourceControl.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'source-box');
+    div.innerHTML = '<b>Grundlage:</b> <a href="https://rips-metadaten.lubw.de/trefferanzeige?docuuid=4e14418d-2d74-4349-ba4e-7118060931c8" target="_blank">Daten aus dem Umweltinformationssystem (UIS) der LUBW</a>'+ 
+	'<br> <b> Windrad Icons: </b> <a hfref= <a href="https://www.flaticon.com/free-icons/wind-turbine"target="_blank"> Wind-turbine icons created by Freepik - Flaticon</a>' + 
+	'<br> <b> Autoren: </b> <a href="https://youtu.be/xvFZjo5PgG0?si=2HeCyfPuTeTaynUI"target="_blank"> Niklas Lehr </a> & <a href="Hamster.html"> Ben Schmidt </a> ';
+    return div;
+};
+
+sourceControl.addTo(mymap);
+
  </script>
- 
+
 </body>
 </html>
