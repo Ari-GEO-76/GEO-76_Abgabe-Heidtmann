@@ -91,17 +91,13 @@
     return {
       color: 'black',
       stroke: true,
-      fillOpacity: 0
+      fillOpacity:  0.5
     };
   }
 }).addTo(mymap);
 
   // Add popup function
-  function popUpFunction(feature, layer) {
-   var popupContent =  
-   "<br><b>Standort: </b>"+feature.properties.STANDORTGE+
-    layer.bindPopup(popupContent);
-  }
+
 
 // Overlay dictonary
 var overlays = {
