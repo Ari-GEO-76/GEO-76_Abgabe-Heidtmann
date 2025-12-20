@@ -19,6 +19,7 @@
    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
    crossorigin=""></script>
    
+  <!-- Links to the Leaflet-Ruler Plugin -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.css">
 <script src="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.js"></script>
  
@@ -95,7 +96,12 @@
   }
 }).addTo(mymap);
 
- 
+  // Add popup function
+  function popUpFunction(feature, layer) {
+   var popupContent =  
+   "<br><b>Standort: </b>"+feature.properties.STANDORTGE+
+    layer.bindPopup(popupContent);
+  }
 
 // Overlay dictonary
 var overlays = {
@@ -120,6 +126,7 @@ var options = {
   }
  };
 
+// Leaflet-Ruler measure tool
 var ruler = L.control.ruler(options).addTo(mymap);
 
  </script>
