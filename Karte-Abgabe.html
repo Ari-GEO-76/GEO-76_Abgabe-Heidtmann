@@ -97,7 +97,11 @@
 }).addTo(mymap);
 
   // Add popup function
-
+function popUpFunction(feature, layer) {
+ var popupContent = "<b> Schutzgebiet: </b>"+feature.properties.OBJEKT+
+  "<br><b> Fläche: </b>"+ feature.properties.FLAECHE;
+ layer.bindPopup(popupContent);
+}
 
 // Overlay dictonary
 var overlays = {
