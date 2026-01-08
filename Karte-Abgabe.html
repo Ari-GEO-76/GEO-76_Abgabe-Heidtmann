@@ -89,13 +89,16 @@
   var overlay_Vogelschutz = L.geoJSON(Vogel, {
   style: function(feature) {
     return {
-      color: '#000',
-	  weight: 1,
-	  fillColor: '#00aa00',
-      fillOpacity:  0.5
-    };
+      return {color: 'black', stroke: true, fillOpacity: 0,5 };
   }
 }).addTo(mymap);
+
+  // Add popup function
+function popUpFunction(feature, layer) {
+ var popupContent = "<b> Schutzgebiet: </b>"+feature.properties.OBJEKT+
+  "<br><b> Fläche: </b>"+ feature.properties.FLAECHE;
+ layer.bindPopup(popupContent);
+}
 
 // Overlay dictonary
 var overlays = {
